@@ -10,7 +10,7 @@ export default function Files() {
   }, [])
 
   function loadAssets() {
-    getAssets().then(res => setAssets(res.data)).catch(console.error)
+    getAssets().then(res => setAssets(Array.isArray(res) ? res : [])).catch(console.error)
   }
 
   function getFileType(file) {
