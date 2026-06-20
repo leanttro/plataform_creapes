@@ -9,7 +9,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     getProjects()
-      .then(res => setProjects(res.data))
+      .then(res => setProjects(Array.isArray(res) ? res : []))
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [])
