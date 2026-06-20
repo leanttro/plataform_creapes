@@ -50,6 +50,14 @@ export default function Player() {
     setPausedAt(null)
   }, [versionId])
 
+  // Atualiza os comentários automaticamente a cada poucos segundos (polling)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      loadComments()
+    }, 4000)
+    return () => clearInterval(interval)
+  }, [versionId])
+
   // Conecta no Vimeo Player SDK pra capturar o timecode automaticamente ao pausar
   useEffect(() => {
     let player
