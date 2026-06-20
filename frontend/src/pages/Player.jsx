@@ -34,6 +34,7 @@ export default function Player() {
   const [currentTime, setCurrentTime] = useState(0)
   const [pausedAt, setPausedAt] = useState(null)
   const iframeRef = useRef(null)
+  const videoRef = useRef(null)
   const playerRef = useRef(null)
   const commentListRef = useRef(null)
 
@@ -154,8 +155,14 @@ export default function Player() {
     return `https://player.vimeo.com/video/${rawId}?title=0&byline=0&portrait=0`
   }
 
+  // Detecta se é um vídeo direto (Cloudinary/MP4) ou um link do Vimeo
+  const isDirectVideo = !!version.video_url && (
+    /\.(mp4|webm|ogg|mov)(\?|$)/i.test(version.video_url) ||
+    version.video_url.includes('res.cloudinary.com')
+  )
+
   const vimeoId = version.vimeo_id || version.video_url?.split('/').pop()
-  const vimeoEmbedUrl = buildVimeoEmbedUrl(vimeoId, version.video_url)
+  const vimeoEmbedUrl = !isDirectVideo ? buildVimeoEmbedUrl(vimeoId, version.video_url) : null
 
   return (
     <div style={styles.page}>
@@ -196,16 +203,33 @@ export default function Player() {
           </div>
         </div>
 
-        {/* PLAYER VIMEO */}
+        {/* PLAYER */}
         <div style={styles.playerWrapper}>
-          <iframe
-            ref={iframeRef}
-            src={vimeoEmbedUrl}
-            style={styles.iframe}
-            allow="autoplay; fullscreen; picture-in-picture"
-            allowFullScreen
-            title={version.label}
-          />
+          {isDirectVideo ? (
+            <video
+              ref={videoRef}
+              src={version.video_url}
+              style={styles.video}
+              controls
+              onPause={() => {
+                const v = videoRef.current
+                if (!v) return
+                const rounded = Math.floor(v.currentTime)
+                setCurrentTime(rounded)
+                setPausedAt(rounded)
+              }}
+              onPlay={() => setPausedAt(null)}
+            />
+          ) : (
+            <iframe
+              ref={iframeRef}
+              src={vimeoEmbedUrl}
+              style={styles.iframe}
+              allow="autoplay; fullscreen; picture-in-picture"
+              allowFullScreen
+              title={version.label}
+            />
+          )}
         </div>
 
         {/* INPUT DE TIMECODE MANUAL */}
@@ -372,6 +396,7 @@ const styles = {
   }),
   playerWrapper: { position: 'relative', paddingTop: '56.25%', borderRadius: 12, overflow: 'hidden', backgroundColor: '#000' },
   iframe: { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' },
+  video: { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: '#000' },
   timecodeRow: {
     display: 'flex', alignItems: 'center', gap: 10,
     padding: '10px 16px', backgroundColor: '#161618',
