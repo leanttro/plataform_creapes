@@ -25,7 +25,7 @@ export default function Settings() {
     }
     try {
       const res = await updateClient(client.id, form)
-      setClient(res.data)
+      setClient(res)
       document.documentElement.style.setProperty('--accent-color', form.accent_color)
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
