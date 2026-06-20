@@ -15,12 +15,12 @@ export default function Player() {
   const commentListRef = useRef(null)
 
   useEffect(() => {
-    getVersion(versionId).then(res => setVersion(res.data)).catch(console.error)
+    getVersion(versionId).then(res => setVersion(res)).catch(console.error)
     loadComments()
   }, [versionId])
 
   function loadComments() {
-    getComments(versionId).then(res => setComments(res.data)).catch(console.error)
+    getComments(versionId).then(res => setComments(Array.isArray(res) ? res : [])).catch(console.error)
   }
 
   function formatTime(seconds) {
