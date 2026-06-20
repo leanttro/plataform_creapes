@@ -64,7 +64,22 @@ export default function Player() {
 
   if (!version) return <div style={{ padding: 64, color: '#A0A0A5' }}>Carregando...</div>
 
+  function buildVimeoEmbedUrl(rawId, url) {
+    // Se já veio uma URL completa de player, usa direto
+    if (url?.includes('player.vimeo.com')) return url
+    // Tenta extrair id + hash de uma URL tipo vimeo.com/123456789/abcdef1234
+    if (url) {
+      const clean = url.split('?')[0].replace(/\/$/, '')
+      const parts = clean.split('/')
+      if (parts.length >= 5) return `https://player.vimeo.com/video/${parts[3]}?h=${parts[4]}&title=0&byline=0&portrait=0`
+      if (parts.length === 4) return `https://player.vimeo.com/video/${parts[3]}?title=0&byline=0&portrait=0`
+    }
+    // Fallback: vimeo_id salvo direto (sem hash) — só funciona se o vídeo for público
+    return `https://player.vimeo.com/video/${rawId}?title=0&byline=0&portrait=0`
+  }
+
   const vimeoId = version.vimeo_id || version.video_url?.split('/').pop()
+  const vimeoEmbedUrl = buildVimeoEmbedUrl(vimeoId, version.video_url)
 
   return (
     <div style={styles.page}>
@@ -93,7 +108,7 @@ export default function Player() {
         <div style={styles.playerWrapper}>
           <iframe
             ref={iframeRef}
-            src={`https://player.vimeo.com/video/${vimeoId}?title=0&byline=0&portrait=0`}
+            src={vimeoEmbedUrl}
             style={styles.iframe}
             allow="autoplay; fullscreen; picture-in-picture"
             allowFullScreen
