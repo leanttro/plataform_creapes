@@ -16,7 +16,7 @@ export default function Projects() {
 
   useEffect(() => {
     getProjects()
-      .then(res => setProjects(res.data))
+      .then(res => setProjects(Array.isArray(res) ? res : []))
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [])
@@ -24,7 +24,7 @@ export default function Projects() {
   async function openProject(project) {
     try {
       const res = await getVersions(project.id)
-      const versions = res.data
+      const versions = Array.isArray(res) ? res : []
       if (versions.length > 0) {
         navigate(`/player/${versions[0].id}`)
       }
