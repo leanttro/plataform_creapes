@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { getVersion, getVersions, getComments, createComment, createApproval } from '../services/api'
+import { useAuth } from '../context/AuthContext'
 
 // Carrega o script do Vimeo Player SDK uma única vez
 function loadVimeoSDK() {
@@ -22,6 +23,8 @@ function loadVimeoSDK() {
 export default function Player() {
   const { versionId } = useParams()
   const navigate = useNavigate()
+  const { user } = useAuth()
+  const authorName = user?.name || (user?.role === 'admin' ? 'Admin' : 'Cliente')
   const [version, setVersion] = useState(null)
   const [allVersions, setAllVersions] = useState([])
   const [comments, setComments] = useState([])
@@ -94,7 +97,7 @@ export default function Player() {
     try {
       await createComment({
         version_id: parseInt(versionId),
-        author_name: 'Cliente',
+        author_name: authorName,
         text: commentText,
         timecode: currentTime || null
       })
@@ -109,7 +112,7 @@ export default function Player() {
     try {
       await createApproval({
         version_id: parseInt(versionId),
-        author_name: 'Cliente',
+        author_name: authorName,
         decision,
         note: approvalNote
       })
