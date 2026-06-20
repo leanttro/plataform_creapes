@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
+import cloudinary
 
 db = SQLAlchemy()
 
@@ -10,6 +11,10 @@ def create_app():
 
     db.init_app(app)
     CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
+
+    # Cloudinary lê a CLOUDINARY_URL automaticamente do ambiente,
+    # mas inicializamos explícito pra garantir que carregou.
+    cloudinary.config(cloudinary_url=app.config.get('CLOUDINARY_URL'))
 
     from app.routes.auth import bp as auth_bp
     from app.routes.users import bp as users_bp
