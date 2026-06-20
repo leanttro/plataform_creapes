@@ -43,7 +43,7 @@ export default function Files() {
         await uploadAsset(file, selectedProject)
       } catch (e) {
         console.error(e)
-        alert(`Falha ao enviar ${file.name}`)
+        alert(`Falha ao enviar ${file.name}: ${e.message}`)
       }
     }
     setUploading(false)
