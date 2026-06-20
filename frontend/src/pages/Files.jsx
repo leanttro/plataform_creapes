@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react'
-import { getAssets, createAsset, deleteAsset, getProjects } from '../services/api'
+import { getAssets, uploadAsset, deleteAsset, getProjects, createVersion } from '../services/api'
+import { useNavigate } from 'react-router-dom'
 
 export default function Files() {
+  const navigate = useNavigate()
   const [assets, setAssets] = useState([])
   const [projects, setProjects] = useState([])
   const [selectedProject, setSelectedProject] = useState('')
   const [dragging, setDragging] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [sendingId, setSendingId] = useState(null)
 
   useEffect(() => {
     getProjects().then(res => {
@@ -33,19 +37,34 @@ export default function Files() {
 
   async function processFiles(files) {
     if (!selectedProject) { alert('Selecione um projeto primeiro'); return }
+    setUploading(true)
     for (const file of Array.from(files)) {
-      const type = getFileType(file)
       try {
-        await createAsset({
-          project_id: parseInt(selectedProject),
-          name: file.name,
-          file_url: '#',
-          file_type: type,
-          size_bytes: file.size
-        })
-      } catch (e) { console.error(e) }
+        await uploadAsset(file, selectedProject)
+      } catch (e) {
+        console.error(e)
+        alert(`Falha ao enviar ${file.name}`)
+      }
     }
+    setUploading(false)
     loadAssets()
+  }
+
+  async function sendToPlayer(asset) {
+    setSendingId(asset.id)
+    try {
+      const version = await createVersion({
+        project_id: asset.project_id,
+        label: asset.name,
+        video_url: asset.file_url
+      })
+      navigate(`/player/${version.id}`)
+    } catch (e) {
+      console.error(e)
+      alert('Não foi possível enviar para o player')
+    } finally {
+      setSendingId(null)
+    }
   }
 
   function formatBytes(bytes) {
@@ -83,12 +102,21 @@ export default function Files() {
         onDragOver={e => { e.preventDefault(); setDragging(true) }}
         onDragLeave={() => setDragging(false)}
         onDrop={e => { e.preventDefault(); setDragging(false); processFiles(e.dataTransfer.files) }}
-        onClick={() => document.getElementById('file-input').click()}
+        onClick={() => !uploading && document.getElementById('file-input').click()}
       >
         <input id="file-input" type="file" multiple hidden onChange={e => processFiles(e.target.files)} />
-        <i className="ph ph-upload-simple" style={{ fontSize: '2.5rem', color: '#A0A0A5', marginBottom: 12 }} />
-        <p style={{ color: '#EDEDED', fontWeight: 500, marginBottom: 4 }}>Arraste arquivos aqui ou clique para selecionar</p>
-        <p style={{ color: '#A0A0A5', fontSize: '0.875rem' }}>PDF, imagens, ZIP, vídeos</p>
+        {uploading ? (
+          <>
+            <i className="ph ph-spinner-gap" style={{ fontSize: '2.5rem', color: '#8B5CF6', marginBottom: 12 }} />
+            <p style={{ color: '#EDEDED', fontWeight: 500 }}>Enviando arquivo(s)...</p>
+          </>
+        ) : (
+          <>
+            <i className="ph ph-upload-simple" style={{ fontSize: '2.5rem', color: '#A0A0A5', marginBottom: 12 }} />
+            <p style={{ color: '#EDEDED', fontWeight: 500, marginBottom: 4 }}>Arraste arquivos aqui ou clique para selecionar</p>
+            <p style={{ color: '#A0A0A5', fontSize: '0.875rem' }}>PDF, imagens, ZIP, vídeos</p>
+          </>
+        )}
       </div>
 
       {assets.length > 0 ? (
@@ -108,6 +136,16 @@ export default function Files() {
                   </button>
                 </div>
               </div>
+              {asset.file_type === 'video' && asset.file_url !== '#' && (
+                <button
+                  style={styles.btnSendPlayer}
+                  onClick={() => sendToPlayer(asset)}
+                  disabled={sendingId === asset.id}
+                >
+                  <i className="ph-bold ph-play-circle" />
+                  {sendingId === asset.id ? 'Enviando...' : 'Enviar para o Player'}
+                </button>
+              )}
             </div>
           ))}
         </div>
@@ -133,5 +171,11 @@ const styles = {
   galleryIcon: { width: '100%', height: 140, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem', color: '#A0A0A5', backgroundColor: '#0F0F11' },
   galleryInfo: { padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.05)' },
   galleryName: { fontSize: '0.85rem', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '60%' },
-  btnDownload: { width: 32, height: 32, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem' }
+  btnDownload: { width: 32, height: 32, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem' },
+  btnSendPlayer: {
+    margin: '0 16px 16px', padding: '8px 12px', borderRadius: 6,
+    backgroundColor: 'rgba(139,92,246,0.15)', color: '#8B5CF6',
+    border: '1px solid rgba(139,92,246,0.35)', fontSize: '0.8rem', fontWeight: 600,
+    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
+  }
 }
