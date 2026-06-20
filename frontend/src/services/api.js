@@ -73,7 +73,11 @@ export const uploadAsset = async (file, projectId) => {
     headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
     body: formData,
   })
-  if (!res.ok) throw new Error(`Upload error: ${res.status}`)
+  if (!res.ok) {
+    let detail = ''
+    try { detail = (await res.json()).error || '' } catch {}
+    throw new Error(`Upload error: ${res.status}${detail ? ` - ${detail}` : ''}`)
+  }
   return res.json()
 }
 
