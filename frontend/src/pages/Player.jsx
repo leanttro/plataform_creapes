@@ -85,6 +85,12 @@ export default function Player() {
     getComments(versionId).then(res => setComments(Array.isArray(res) ? res : [])).catch(console.error)
   }
 
+  useEffect(() => {
+    if (commentListRef.current) {
+      commentListRef.current.scrollTop = commentListRef.current.scrollHeight
+    }
+  }, [comments])
+
   function formatTime(seconds) {
     if (!seconds && seconds !== 0) return ''
     const m = Math.floor(seconds / 60).toString().padStart(2, '0')
