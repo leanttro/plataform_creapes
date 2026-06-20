@@ -63,6 +63,19 @@ export const createComment = (data) => request('/comments/', { method: 'POST', b
 export const getAssets = (projectId) => request(`/assets/?project_id=${projectId}`)
 export const createAsset = (data) => request('/assets/', { method: 'POST', body: JSON.stringify(data) })
 export const deleteAsset = (id) => request(`/assets/${id}`, { method: 'DELETE' })
+export const uploadAsset = async (file, projectId) => {
+  const token = getToken()
+  const formData = new FormData()
+  formData.append('file', file)
+  formData.append('project_id', projectId)
+  const res = await fetch(`${BASE_URL}/assets/upload`, {
+    method: 'POST',
+    headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    body: formData,
+  })
+  if (!res.ok) throw new Error(`Upload error: ${res.status}`)
+  return res.json()
+}
 
 // Approvals
 export const getApprovals = (versionId) => request(`/approvals/?version_id=${versionId}`)
