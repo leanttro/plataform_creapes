@@ -240,20 +240,24 @@ export default function Player() {
               {comments.length === 0 && (
                 <div style={styles.emptyComments}>Nenhum comentário ainda.</div>
               )}
-              {comments.map(c => (
-                <div key={c.id} style={styles.comment}>
-                  <div style={styles.commentAvatar} />
-                  <div style={styles.commentBody}>
-                    <div style={styles.commentHeader}>
-                      <span style={styles.commentName}>{c.author_name}</span>
+              {comments.map(c => {
+                const isMine = c.author_name === authorName
+                return (
+                  <div key={c.id} style={{ ...styles.comment, ...(isMine ? styles.commentMine : {}) }}>
+                    {!isMine && <div style={styles.commentAvatar} />}
+                    <div style={{ ...styles.commentBody, ...(isMine ? styles.commentBodyMine : {}) }}>
+                      <div style={styles.commentHeader}>
+                        <span style={styles.commentName}>{isMine ? 'Você' : c.author_name}</span>
+                      </div>
+                      <p style={{ ...styles.commentText, ...(isMine ? styles.commentTextMine : {}) }}>{c.text}</p>
                       {c.timecode != null && (
                         <span style={styles.timeTag}>[{formatTime(c.timecode)}]</span>
                       )}
                     </div>
-                    <p style={styles.commentText}>{c.text}</p>
+                    {isMine && <div style={styles.commentAvatar} />}
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
 
             <div style={styles.commentInputArea}>
@@ -376,20 +380,29 @@ const styles = {
   tabActive: { color: '#EDEDED', borderBottomColor: '#8B5CF6' },
   commentList: { flex: 1, overflowY: 'auto', padding: 20, display: 'flex', flexDirection: 'column', gap: 16 },
   emptyComments: { color: '#A0A0A5', fontSize: '0.875rem', textAlign: 'center', marginTop: 40 },
-  comment: { display: 'flex', gap: 12 },
+  comment: { display: 'flex', gap: 12, maxWidth: '92%' },
+  commentMine: { flexDirection: 'row-reverse', alignSelf: 'flex-end' },
   commentAvatar: {
     width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
     backgroundImage: 'url(https://i.pravatar.cc/150?img=11)', backgroundSize: 'cover',
     border: '2px solid #2D2D30'
   },
-  commentBody: { flex: 1 },
+  commentBody: {
+    flex: 1, backgroundColor: '#161618', borderRadius: 12,
+    padding: '10px 14px', border: '1px solid #2D2D30'
+  },
+  commentBodyMine: {
+    backgroundColor: 'rgba(139,92,246,0.12)', border: '1px solid rgba(139,92,246,0.35)'
+  },
   commentHeader: { display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 },
   commentName: { fontWeight: 600, fontSize: '0.875rem' },
   timeTag: {
+    display: 'inline-block', marginTop: 6,
     fontSize: '0.75rem', color: '#8B5CF6', backgroundColor: 'rgba(139,92,246,0.15)',
     padding: '2px 6px', borderRadius: 4, fontFamily: 'monospace'
   },
   commentText: { fontSize: '0.875rem', color: '#A0A0A5', lineHeight: 1.5 },
+  commentTextMine: { color: '#EDEDED' },
   commentInputArea: {
     padding: 16, borderTop: '1px solid #2D2D30',
     display: 'flex', gap: 10, alignItems: 'flex-end'
