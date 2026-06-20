@@ -1,6 +1,4 @@
-const BASE_URL = import.meta.env.VITE_API_URL
-  ? `${import.meta.env.VITE_API_URL}/api`
-  : '/api'
+const BASE_URL = 'https://apicreapes2.leanttro.com/api'
 
 const request = async (path, options = {}) => {
   const res = await fetch(`${BASE_URL}${path}`, {
@@ -25,6 +23,7 @@ export const updateProject = (id, data) => request(`/projects/${id}`, { method: 
 
 // Versions
 export const getVersions = (projectId) => request(`/versions?project_id=${projectId}`)
+export const getVersion = (id) => request(`/versions/${id}`)
 export const createVersion = (data) => request('/versions', { method: 'POST', body: JSON.stringify(data) })
 export const updateVersion = (id, data) => request(`/versions/${id}`, { method: 'PUT', body: JSON.stringify(data) })
 
