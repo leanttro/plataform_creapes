@@ -12,7 +12,7 @@ def list_comments(current_user):
     query = Comment.query
     if version_id:
         query = query.filter_by(version_id=version_id)
-    return jsonify([c.to_dict() for c in query.order_by(Comment.timecode).all()])
+    return jsonify([c.to_dict() for c in query.order_by(Comment.created_at).all()])
 
 @bp.route('/', methods=['POST'])
 @token_required
